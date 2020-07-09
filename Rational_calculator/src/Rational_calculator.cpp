@@ -1,9 +1,12 @@
-#include <cstdlib>
 #include <iostream>
-#include <map>
+#include <iomanip>
+#include <algorithm>
 #include <set>
+#include <sstream>
+#include <map>
 #include <vector>
-
+#include <exception>
+#include <stdexcept>
 using namespace std;
 
 class Rational {
@@ -22,6 +25,9 @@ public:
 				denominator = abs(denominator);
 				numerator = numerator - 2 * numerator;
 			}
+		}
+		if (denominator == 0) {
+			throw invalid_argument("Invalid argument");
 		}
 		if (numerator == 0) {
 			denominator = 1;
@@ -78,6 +84,9 @@ Rational operator -(const Rational &a, const Rational &b) {
 Rational operator /(const Rational &a, const Rational &b) {
 	int p = (a.Numerator() * b.Denominator());
 	int q = (b.Numerator() * a.Denominator());
+	if (q == 0) {
+		throw domain_error("Division by zero");
+	}
 	return Rational(p, q);
 }
 Rational operator *(const Rational &a, const Rational &b) {
@@ -87,10 +96,11 @@ Rational operator *(const Rational &a, const Rational &b) {
 }
 
 istream& operator >>(istream &stream, Rational &a) {
-	int p = 0;
-	int q = 0;
-	if (stream >> p && stream.ignore(1) && stream >> q) {
-		a = { p, q };
+	int n, d;
+	char c;
+	stream >> n >> c >> d;
+	if (stream && c == '/') {
+		a = Rational(n, d);
 	}
 	return stream;
 }
@@ -119,37 +129,28 @@ bool operator >(const Rational &a, const Rational &b) {
 }
 
 int main() {
-	{
-		const set<Rational> rs = { { 1, 2 }, { 1, 25 }, { 3, 4 }, { 3, 4 }, { 1,
-				2 } };
-		if (rs.size() != 3) {
-			cout << "Wrong amount of items in the set" << endl;
-			return 1;
-		}
+	try {
+		Rational x;
+		Rational y;
+		char z;
+		cin >> x >> z >> y;
 
-		vector<Rational> v;
-		for (auto x : rs) {
-			v.push_back(x);
+		switch (z) {
+		case '+':
+			cout << x + y;
+			break;
+		case '-':
+			cout << x - y;
+			break;
+		case '*':
+			cout << x * y;
+			break;
+		case '/':
+			cout << x / y;
+			break;
 		}
-		if (v != vector<Rational> { { 1, 25 }, { 1, 2 }, { 3, 4 } }) {
-			cout << "Rationals comparison works incorrectly" << endl;
-			return 2;
-		}
+	} catch (exception &ex) {
+		cout << ex.what() << endl;
 	}
-
-	{
-		map<Rational, int> count;
-		++count[ { 1, 2 }];
-		++count[ { 1, 2 }];
-
-		++count[ { 2, 3 }];
-
-		if (count.size() != 2) {
-			cout << "Wrong amount of items in the map" << endl;
-			return 3;
-		}
-	}
-
-	cout << "OK" << endl;
 	return 0;
 }
